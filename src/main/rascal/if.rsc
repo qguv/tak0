@@ -36,14 +36,13 @@ Source change(Source unit) = innermost visit(unit) {
         (Statement) `if (<Expression cond> === false) { <Statement a> } else { <Statement b> }` =>
         (Statement) `if (!<Expression cond>) { <Statement a> } else { <Statement b> }`
 
-    /*
     case
-        (Statement) `<Expression cond> == true ? <Statement a> : <Statement b>` =>
-        (Statement) `<Expression cond> ? <Statement a> : <Statement b>`
+        (Expression) `<Expression cond> == true ? <Expression a> : <Expression b>` =>
+        (Expression) `<Expression cond> ? <Expression a> : <Expression b>`
 
     case
-        (Expression) `<Expression cond> == false ? <Statement a> : <Statement b>` =>
-        (Expression) `!<Expression cond> ? <Statement a> : <Statement b>`
+        (Expression) `<Expression cond> == false ? <Expression a> : <Expression b>` =>
+        (Expression) `!<Expression cond> ? <Expression a> : <Expression b>`
 
     case
         (Expression) `<Expression cond> ? true : false` =>
@@ -52,7 +51,6 @@ Source change(Source unit) = innermost visit(unit) {
     case
         (Expression) `<Expression cond> ? false : true` =>
         (Expression) `!<Expression cond>`
-    */
 
     case
         (Statement) `if (<Expression cond>) { return true; } else { return false; }` =>
@@ -67,9 +65,7 @@ Source change(Source unit) = innermost visit(unit) {
         (Statement) `if (!<Expression cond>) { <Statement a> } else { <Statement b> }` =>
         (Statement) `if (<Expression cond>) { <Statement b> } else { <Statement a> }`
 
-    /*
     case
-        (Expression) `!<Expression cond> ? <Statement a> : <Statement b>` =>
-        (Expression) `<Expression cond> ? <Statement b> : <Statement a>`
-    */
+        (Expression) `!<Expression cond> ? <Expression a> : <Expression b>` =>
+        (Expression) `<Expression cond> ? <Expression b> : <Expression a>`
 };
