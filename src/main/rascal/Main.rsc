@@ -34,9 +34,9 @@ void main(list[str] _) {
                 Source new_ast = src_ast;
                 str hist = "";
 
-                for (i <- change_indexes) {
+                for (i <- permutation) {
                     hist += letters[i];
-                    Change = changes[i];
+                    change = changes[i];
                     new_ast = change(new_ast);
                     println("\nAST <hist>:\n<new_ast>\n");
                 }
