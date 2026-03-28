@@ -1,5 +1,6 @@
 module Main
 
+import display;
 import js2;
 import patches::case02a;
 import patches::case02b;
@@ -81,12 +82,6 @@ str strip_multiline_comments(str s) {
         s = left + right;
     }
     return s;
-}
-
-str indent(str prefix, str s) {
-    list[str] lines = split("\n", s);
-    lines = [prefix + line | line <- lines];
-    return intercalate("", lines);
 }
 
 AST parseCodebase(Codebase codebase, int verbosity=0) {
