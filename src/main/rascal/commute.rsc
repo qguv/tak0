@@ -44,7 +44,7 @@ map[AST, list[str]] checkCommute(Merge merge, int verbosity = 0) {
                 result = patch(result);
 
                 if (3 < verbosity) {
-                    println("\n    .. patch <patch_i> ..\n<indent("    ", unparse(result))>");
+                    println("\n    .. patch <patch_i+1> of <size(branch)> ..\n<indent("    ", unparse(result))>");
                 }
             }
 

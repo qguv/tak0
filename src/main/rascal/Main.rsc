@@ -18,8 +18,12 @@ import String; // trim, size, intercalate
 void demo(int verbosity=0) {
 
     int test_i = 0;
-    for (<case_name, base_codebase, prop> <- getTestcases()) {
-        println("\n== test #<test_i>: <case_name> ==");
+    list[Testcase] allTests = getTestcases();
+    for (<case_name, base_codebase, prop> <- allTests) {
+        if (0 < verbosity) {
+            println("");
+        }
+        println("\n== test <test_i+1> of <size(allTests)>: <case_name> ==");
         test_i += 1;
 
         try {
@@ -71,10 +75,13 @@ void demo(int verbosity=0) {
                     if (0 < verbosity) {
                         println("\n-- result --");
                     }
-                    if (fixedPointAfter == -1) {
-                        println("fixed point? no (maximum attempts exceeded)");
-                    } else {
-                        println("fixed point? yes (after <fixedPointAfter> applications)");
+                    switch (fixedPointAfter) {
+                        case -1:
+                            println("fixed point? no (maximum attempts exceeded)");
+                        case 0:
+                            println("fixed point? yes (base was already a fixed point)");
+                        default:
+                            println("fixed point? yes (converges after <fixedPointAfter> branch applications)");
                     }
                 }
             }
@@ -102,7 +109,7 @@ int checkFixedPoint(AST base, Branch branch, int verbosity=0) {
         AST last_result = result;
 
         if (1 < verbosity) {
-            println("\n-- repetition <i+1> --");
+            println("\n-- application <i+1> --");
         }
 
         for (patch_i <- [0..size(branch)]) {
@@ -110,7 +117,7 @@ int checkFixedPoint(AST base, Branch branch, int verbosity=0) {
             result = patch(result);
 
             if (2 < verbosity) {
-                println("\n  :: patch <patch_i> ::\n<indent("  ", unparse(result))>");
+                println("\n  :: patch <patch_i+1> of <size(branch)> ::\n<indent("  ", unparse(result))>");
             }
         }
 
@@ -120,13 +127,22 @@ int checkFixedPoint(AST base, Branch branch, int verbosity=0) {
 
         if (result == last_result) {
             if (verbosity == 1) {
-                if (0 < i) {
-                    println("\n-- base --\n<base>");
+                if (i == 0) {
+                    println("\n-- base and all subsequent applications --\n<base>");
+                } else {
+                    println("\n-- application <i> and onward --\n<result>");
                 }
-                println("\n-- repetition <i> and beyond --\n<result>");
             }
             return i;
         }
+
+        if (verbosity == 1 && i == 0) {
+            println("\n-- base --\n<base>");
+        }
+    }
+
+    if (verbosity == 1) {
+        println("\n-- repetition <maxAttempts> (last attempt) --\n<result>");
     }
     return -1;
 }
