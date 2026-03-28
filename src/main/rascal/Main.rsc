@@ -19,7 +19,11 @@ list[Testcase] testcases = [
 ];
 str letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-void main(list[str] _) {
+void main(list[str] args) {
+
+    // to increase verbosity to 4, use -vvvv or -v -v -v -v (or a combination)
+    int verbosity = sum([size(arg) - 1 | arg <- args, startsWith(arg, "-v")] + [0]);
+
     for (<src_path, changes> <- testcases) {
 
         println("\n== <src_path.file> ==");
@@ -45,6 +49,11 @@ void main(list[str] _) {
                     permutation_name += letters[i];
                     change = changes[i];
                     result = change(result);
+                    if (1 < verbosity) {
+                        println("\n-- <permutation_name> --\n<result>");
+                    }
+                }
+                if (verbosity == 1) {
                     println("\n-- <permutation_name> --\n<result>");
                 }
 
