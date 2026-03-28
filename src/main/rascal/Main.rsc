@@ -174,7 +174,7 @@ void main(list[str] args) {
             println("commutes? <
                 trivial == "always" ? "yes (trivially)"
                 : size(results) == 1 ? "yes"
-                : "no (<intercalate(" != ", [intercalate("/", results[r]) | r <- results])>)"
+                : "no (<intercalate(" != ", sort([intercalate("/", results[r]) | r <- results]))>)"
             >");
 
             if (verbosity == 1) {
