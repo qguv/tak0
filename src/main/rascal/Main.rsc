@@ -28,7 +28,7 @@ void main(list[str] args) {
     int verbosity = sum([size(arg) - 1 | arg <- args, startsWith(arg, "-v")] + [0]);
 
     for (<src_path, changes> <- testcases) {
-        map[Source, list[str]] results = [];
+        map[Source, list[str]] results = ();
 
         println("\n== <src_path.file> ==");
         str src = readFile(src_path);
@@ -65,15 +65,17 @@ void main(list[str] args) {
 
             println("\n-- results --");
             str trivial = (
-                !(src_ast in results) ? "never"
-                : size(results) == 1 ? "always"
-                : "sometimes"
+                src_ast in results ? (
+                    size(results) == 1 ? "always"
+                    : "sometimes"
+                )
+                : "never"
             );
             println("trivial?  <trivial>");
             println("commutes? <
                 trivial == "always" ? "yes (trivially)"
                 : size(results) == 1 ? "yes"
-                : "no (<intercalate(" != ", [intercalate("/", results[r]) | r <- results])>"
+                : "no (<intercalate(" != ", [intercalate("/", results[r]) | r <- results])>)"
             >");
 
         } catch ParseError(loc l): {
