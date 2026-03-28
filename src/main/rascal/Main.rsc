@@ -22,39 +22,57 @@ str letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 void main(list[str] _) {
     for (<src_path, changes> <- testcases) {
 
-        println("\n<src_path.file>\n");
+        println("\n== <src_path.file> ==");
         str src = readFile(src_path);
         src = trim(src);
-        println(src);
 
         try {
             Source src_ast = parse(#Source, src);
-            println("\n-----------------\nAST:\n<src_ast>\n");
+            println("<src_ast>");
 
-            Source first = src_ast; // dummy value
-            bool init = false;
+            list[tuple[str name, Source ast]] noncommuting = [];
+            list[tuple[str name, Source ast]] nontrivial = [];
 
-            bool commutes = true;
+            Source first_result = src_ast; // dummy value
+            str first_permutation_name = ""; // dummy value
+            int num_permutations = 0;
             for (permutation <- permutations([0..size(changes)])) {
-                Source new_ast = src_ast;
+                num_permutations += 1;
 
-                str hist = "";
+                Source result = src_ast;
+                str permutation_name = "";
                 for (i <- permutation) {
-                    hist += letters[i];
+                    permutation_name += letters[i];
                     change = changes[i];
-                    new_ast = change(new_ast);
-                    println("\nAST <hist>:\n<new_ast>\n");
+                    result = change(result);
+                    println("\n-- <permutation_name> --\n<result>");
                 }
 
-                if (!init) {
-                    first = new_ast;
-                    init = true;
-                    println("saved reference parse");
-                } else if (first != new_ast) {
-                    commutes = false;
-                    println("does not commute!");
+                // trivial?
+                if (result != src_ast) {
+                    nontrivial += <permutation_name, result>;
+                }
+
+                // commutes?
+                if (first_permutation_name == "") {
+                    first_permutation_name = permutation_name;
+                    first_result = result;
+                } else if (result != first_result) {
+                    noncommuting += <permutation_name, result>;
                 }
             }
+
+            println("\n-- results --");
+            println("trivial?  <
+                isEmpty(nontrivial) ? "always"
+                : size(nontrivial) == num_permutations - 1 ? "never"
+                : "sometimes"
+            >");
+            println("commutes? <
+                isEmpty(nontrivial) ? "yes (trivially)"
+                : isEmpty(noncommuting) ? "yes"
+                : "no (<first_permutation_name> differs from <intercalate(", ", [r.name | r <- noncommuting])>)"
+            >");
 
         } catch ParseError(loc l): {
             println("I found a parse error at line <l.begin.line>, column <l.begin.column>");
