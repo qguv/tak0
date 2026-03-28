@@ -1,12 +1,8 @@
 module Main
 
+import codebase;
 import display;
-import js2;
-import patches::flip_negative_condition;
-import patches::remove_conjunction;
-import patches::remove_disjunction;
-import patches::remove_ternary_with_boolean_literal_branches;
-import patches::simplify_triple_negation;
+import testcases;
 import vctypes;
 
 extend Exception; // ParseError
@@ -18,90 +14,7 @@ import ParseTree; // parse
 import Set; // sort, getFirstFrom
 import String; // trim, size, intercalate
 
-data Codebase
-    = codebasePath(loc path)
-    | codebaseString(str src)
-    | codebaseAST(AST source);
-
-alias Testcase = tuple[str name, Codebase codebase, list[Branch] branches];
-
-list[Testcase] testcases = [
-    //<"test linter-style rules", codebasePath(|home:///dev/tak/test/case02.js|), [[case02a], [case02b]]>,
-    <
-        "some binary merges are trivial",
-        codebasePath(getResource("bases/boolean0.js")),
-        [
-            [remove_conjunction],
-            [remove_disjunction]
-        ]
-    >,
-    <
-        "some non-trivial binary merges commute",
-        codebasePath(getResource("bases/boolean1.js")),
-        [
-            [remove_conjunction],
-            [remove_disjunction]
-        ]
-    >,
-    <
-        "other binary merges don\'t commute (1)",
-        codebasePath(getResource("bases/boolean2.js")),
-        [
-            [remove_conjunction],
-            [remove_disjunction]
-        ]
-    >,
-    <
-        "other binary merges don\'t commute (2)",
-        codebasePath(getResource("bases/ternary.js")),
-        [
-            [flip_negative_condition],
-            [remove_ternary_with_boolean_literal_branches]
-        ]
-    >,
-    <
-        "some ternary merges don\'t commute",
-        codebasePath(getResource("bases/ternary.js")),
-        [
-            [flip_negative_condition],
-            [remove_ternary_with_boolean_literal_branches],
-            [simplify_triple_negation]
-        ]
-    >
-];
 str letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-str strip_multiline_comments(str s) {
-    while (/^<left:.*>\/\*.*\*\/<right:.*>$/s := s) {
-        s = left + right;
-    }
-    return s;
-}
-
-AST parseCodebase(Codebase codebase, int verbosity=0) {
-    switch (codebase) {
-        case codebasePath(src_path): {
-            if (verbosity > 1) {
-                println("\n-- <src_path.file> --");
-            }
-            return parseCodebase(codebaseString(readFile(src_path)), verbosity=verbosity);
-        }
-        case codebaseString(s): {
-            s = strip_multiline_comments(s);
-            s = trim(s);
-            AST ast = parse(#Source, trim(s));
-            Codebase codebase = codebaseAST(ast);
-            return parseCodebase(codebase, verbosity=verbosity);
-        }
-        case codebaseAST(n): {
-            if (verbosity > 1) {
-                println(n);
-            }
-            return n;
-        }
-    }
-    return parse(#AST, "");
-}
 
 map[AST, list[str]] commute(Merge merge, int verbosity = 0) {
     map[AST, list[str]] results = ();
@@ -163,7 +76,7 @@ str plural(str s, list[value] xs) {
 void demo(int verbosity=0) {
 
     int test_i = 0;
-    for (<case_name, base_codebase, branches> <- testcases) {
+    for (<case_name, base_codebase, branches> <- getTestcases()) {
         println("\n== test #<test_i>: <case_name> ==");
         test_i += 1;
 
