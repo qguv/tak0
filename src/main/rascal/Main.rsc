@@ -1,20 +1,22 @@
 module Main
 
-extend Exception; // ParseError
-import flip_negative_condition;
-import remove_ternary_with_boolean_literal_branches;
-import simplify_triple_negation;
-import remove_conjunction;
-import remove_disjunction;
-import case02a;
-import case02b;
-import IO; // readFile, println
 import js2;
-import ParseTree; // parse
-import String; // trim, size, intercalate
-import Set; // sort
+import patches::case02a;
+import patches::case02b;
+import patches::flip_negative_condition;
+import patches::remove_conjunction;
+import patches::remove_disjunction;
+import patches::remove_ternary_with_boolean_literal_branches;
+import patches::simplify_triple_negation;
+
+extend Exception; // ParseError
+
+import IO; // readFile, println
 import Map; // size
 import Node; // toString
+import ParseTree; // parse
+import Set; // sort
+import String; // trim, size, intercalate
 import util::FileSystem;
 
 alias AST = Source;

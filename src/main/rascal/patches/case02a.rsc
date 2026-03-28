@@ -1,7 +1,7 @@
-module case02b
+module patches::case02a
 import js2;
 
-Source case02b(Source unit) = innermost visit(unit) {
+Source case02a(Source unit) = innermost visit(unit) {
 
    // add brackets to "then" block
     case
