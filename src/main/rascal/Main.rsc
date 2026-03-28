@@ -11,6 +11,7 @@ import js2;
 import ParseTree; // parse
 import String; // trim, size
 import Map; // size
+import Node; // toString
 import util::FileSystem;
 
 alias Change = Source(Source);
@@ -28,7 +29,7 @@ void main(list[str] args) {
     int verbosity = sum([size(arg) - 1 | arg <- args, startsWith(arg, "-v")] + [0]);
 
     for (<src_path, changes> <- testcases) {
-        map[Source, list[str]] results = ();
+        map[str, list[str]] results = ();
 
         println("\n== <src_path.file> ==");
         str src = readFile(src_path);
@@ -56,16 +57,17 @@ void main(list[str] args) {
                     println("\n-- <permutation_name> --\n<result>");
                 }
 
-                if (result in results) {
-                    results[result] += [permutation_name];
+                str result_str = toString(result);
+                if (result_str in results) {
+                    results[result_str] += [permutation_name];
                 } else {
-                    results[result] = [permutation_name];
+                    results[result_str] = [permutation_name];
                 }
             }
 
             println("\n-- results --");
             str trivial = (
-                src_ast in results ? (
+                src in results ? (
                     size(results) == 1 ? "always"
                     : "sometimes"
                 )
