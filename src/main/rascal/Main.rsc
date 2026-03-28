@@ -69,10 +69,6 @@ map[AST, list[str]] commute(Merge merge, int verbosity = 0) {
     return results;
 }
 
-str plural(str s, list[value] xs) {
-    return size(xs) == 1 ? s : "<s>s";
-}
-
 void demo(int verbosity=0) {
 
     int test_i = 0;
