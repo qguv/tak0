@@ -66,6 +66,11 @@ list[Testcase] getTestcases() = [
         ])
     >,
     <
+        "all trivial patches for a base are trivially idempotent",
+        codebasePath(getResource("bases/function2.js")),
+        propFixedPoint([add_log_specific])
+    >,
+    <
         "some additive patches are idempotent",
         codebasePath(getResource("bases/function.js")),
         propFixedPoint([add_log_specific])

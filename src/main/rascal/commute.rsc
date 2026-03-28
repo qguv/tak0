@@ -14,7 +14,7 @@ import ParseTree; // parse
 import Set; // sort, getFirstFrom
 import String; // trim, size, intercalate
 
-map[AST, list[str]] commute(Merge merge, int verbosity = 0) {
+map[AST, list[str]] checkCommute(Merge merge, int verbosity = 0) {
     map[AST, list[str]] results = ();
 
     // go through each permutation of the branches

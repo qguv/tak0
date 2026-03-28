@@ -27,7 +27,7 @@ void demo(int verbosity=0) {
             switch (prop) {
 
                 case propCommutes(branches): {
-                    map[AST, list[str]] results = commute(<base, branches>, verbosity=verbosity);
+                    map[AST, list[str]] results = checkCommute(<base, branches>, verbosity=verbosity);
 
                     if (verbosity == 1) {
 
@@ -58,8 +58,8 @@ void demo(int verbosity=0) {
                         )
                         : "never"
                     );
-                    println("trivial?  <trivial>");
-                    println("commutes? <
+                    println("trivial?\n  <trivial>");
+                    println("commutes?\n  <
                         trivial == "always" ? "yes (trivially)"
                         : size(results) == 1 ? "yes"
                         : "no (<intercalate(" != ", sort([intercalate("/", sort(results[r])) | r <- results]))>)"
@@ -67,7 +67,15 @@ void demo(int verbosity=0) {
                 }
 
                 case propFixedPoint(branch): {
-                    applyUntilStable(base, branch);
+                    int fixedPointAfter = checkFixedPoint(base, branch, verbosity=verbosity);
+                    if (0 < verbosity) {
+                        println("\n-- result --");
+                    }
+                    if (fixedPointAfter == -1) {
+                        println("fixed point? no (maximum attempts exceeded)");
+                    } else {
+                        println("fixed point? yes (after <fixedPointAfter> applications)");
+                    }
                 }
             }
 
@@ -77,20 +85,50 @@ void demo(int verbosity=0) {
     }
 }
 
-bool applyUntilStable(AST base, Branch branch) {
-    maxAttempts = 100;
+/*
+    checks whether the branch ends up in a fixed point
+
+    -1: no fixed point found (max number of attempts exhausted)
+    0: it was already in a fixed point (the next application is identical to the base)
+    1: it reaches a fixed point after being applied once
+    2: twice
+    ...: etc.
+*/
+int checkFixedPoint(AST base, Branch branch, int verbosity=0) {
+    maxAttempts = 3;
 
     AST result = base;
-    for (_ <- [0..maxAttempts]) {
+    for (i <- [0..maxAttempts]) {
         AST last_result = result;
-        for (patch <- branch) {
-            result = patch(result);
+
+        if (1 < verbosity) {
+            println("\n-- repetition <i+1> --");
         }
+
+        for (patch_i <- [0..size(branch)]) {
+            Patch patch = branch[patch_i];
+            result = patch(result);
+
+            if (2 < verbosity) {
+                println("\n  :: patch <patch_i> ::\n<indent("  ", unparse(result))>");
+            }
+        }
+
+        if (verbosity == 2) {
+            println(result);
+        }
+
         if (result == last_result) {
-            return true;
+            if (verbosity == 1) {
+                if (0 < i) {
+                    println("\n-- base --\n<base>");
+                }
+                println("\n-- repetition <i> and beyond --\n<result>");
+            }
+            return i;
         }
     }
-    return false;
+    return -1;
 }
 
 /*
