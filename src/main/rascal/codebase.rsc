@@ -19,8 +19,8 @@ str strip_multiline_comments(str s) {
     return s;
 }
 
-AST parseCodebase(Codebase codebase, int verbosity=0) {
-    switch (codebase) {
+AST parseCodebase(Codebase cb, int verbosity=0) {
+    switch (cb) {
         case codebasePath(src_path): {
             if (verbosity > 1) {
                 println("\n-- <src_path.file> --");
@@ -31,8 +31,8 @@ AST parseCodebase(Codebase codebase, int verbosity=0) {
             s = strip_multiline_comments(s);
             s = trim(s);
             AST ast = parse(#AST, trim(s));
-            Codebase codebase = codebaseAST(ast);
-            return parseCodebase(codebase, verbosity=verbosity);
+            Codebase cb2 = codebaseAST(ast);
+            return parseCodebase(cb2, verbosity=verbosity);
         }
         case codebaseAST(n): {
             if (verbosity > 1) {
