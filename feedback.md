@@ -14,6 +14,7 @@ from a brand new user
 - I can't copy a rascal file and then change its name; this changes all references to the original module name
 - what the hell does "missing calculator" mean? (branch: missing-calculator) no documentation, not in source when searching [github](https://github.com/search?q=repo%3Ausethesource%2Frascal+%22missing+calculator%22&type=code)
 - setting variables `str begin_comment = "/*";` and `str end_comment = "*/";` and using them in a regex like `while (/^<left:.*><start_comment>.*<end_comment><right:.*>$/s := s) { ... }` doesn't work, but the literal version does: `while (/^<left:.*>\/\*.*\*\/<right:.*>$/s := s) { ... }`
+- undeclared non-terminal for no reason whatsoever (branch: undeclared-non-terminal). also supposedly the name `testcases` is ambiguous between two lines in the same file? why??
 - when I run my code (branch: call-failed) directly, it works, but in vscode, when I try to run main by clicking "Run in new Rascal terminal" above the main method, I get "CallFailed" errors with no output, warnings, suggestions, etc.:
 
     rascal>main()
