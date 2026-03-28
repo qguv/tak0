@@ -31,15 +31,28 @@ void main(list[str] _) {
             Source src_ast = parse(#Source, src);
             println("\n-----------------\nAST:\n<src_ast>\n");
 
+            Source first = src_ast; // dummy value
+            bool init = false;
+
+            bool commutes = true;
             for (permutation <- permutations([0..size(changes)])) {
                 Source new_ast = src_ast;
-                str hist = "";
 
+                str hist = "";
                 for (i <- permutation) {
                     hist += letters[i];
                     change = changes[i];
                     new_ast = change(new_ast);
                     println("\nAST <hist>:\n<new_ast>\n");
+                }
+
+                if (!init) {
+                    first = new_ast;
+                    init = true;
+                    println("saved reference parse");
+                } else if (first != new_ast) {
+                    commutes = false;
+                    println("does not commute!");
                 }
             }
 
