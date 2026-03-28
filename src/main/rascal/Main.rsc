@@ -1,7 +1,8 @@
 module Main
 
 extend Exception; // ParseError
-import case01;
+import flip_negative_condition;
+import remove_ternary_with_boolean_literal_branches;
 import case02a;
 import case02b;
 import IO; // readFile, println
@@ -13,7 +14,7 @@ import util::FileSystem;
 alias Change = Source(Source);
 alias Testcase = tuple[loc, list[Change]];
 list[Testcase] testcases = [
-    <|home:///dev/tak/test/case01.js|, [case01]>,
+    <|home:///dev/tak/test/case01.js|, [flip_negative_condition, remove_ternary_with_boolean_literal_branches]>,
     <|home:///dev/tak/test/case02.js|, [case02a, case02b]>
 ];
 str letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
