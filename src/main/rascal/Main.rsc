@@ -2,13 +2,12 @@ module Main
 
 import display;
 import js2;
-import patches::case02a;
-import patches::case02b;
 import patches::flip_negative_condition;
 import patches::remove_conjunction;
 import patches::remove_disjunction;
 import patches::remove_ternary_with_boolean_literal_branches;
 import patches::simplify_triple_negation;
+import vctypes;
 
 extend Exception; // ParseError
 
@@ -18,11 +17,6 @@ import Node; // toString
 import ParseTree; // parse
 import Set; // sort, getFirstFrom
 import String; // trim, size, intercalate
-
-alias AST = Source;
-alias Patch = AST(AST);
-alias Branch = list[Patch];
-alias Merge = tuple[AST base, list[Branch] branches];
 
 data Codebase
     = codebasePath(loc path)
