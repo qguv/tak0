@@ -80,6 +80,12 @@ str strip_multiline_comments(str s) {
     return s;
 }
 
+str indent(str prefix, str s) {
+    list[str] lines = split("\n", s);
+    lines = [prefix + line | line <- lines];
+    return intercalate("", lines);
+}
+
 AST parseCodebase(Codebase codebase, int verbosity=0) {
     switch (codebase) {
         case codebasePath(src_path): {
@@ -93,7 +99,7 @@ AST parseCodebase(Codebase codebase, int verbosity=0) {
             s = trim(s);
             AST ast = parse(#AST, trim(s));
             Codebase codebase = codebaseAST(ast);
-            return parseCodebase(codebase);
+            return parseCodebase(codebase, verbosity=verbosity);
         }
         case codebaseAST(n): {
             if (verbosity > 1) {
@@ -108,24 +114,35 @@ AST parseCodebase(Codebase codebase, int verbosity=0) {
 map[AST, list[str]] commute(Merge merge, int verbosity = 0) {
     map[AST, list[str]] results = ();
 
+    // go through each permutation of the branches
     int num_permutations = 0;
-    for (permutation <- permutations([0..size(merge.branches)])) {
+    for (branch_order <- permutations([0..size(merge.branches)])) {
         num_permutations += 1;
 
+        // apply each branch in the permuted order
         AST result = merge.base;
         str permutation_name = "";
-        for (i <- permutation) {
-            permutation_name += letters[i];
+        int last_branch_i = last(branch_order);
+        for (branch_i <- branch_order) {
+            Branch branch = merge.branches[branch_i];
+            permutation_name += letters[branch_i];
 
-            for (j <- [0..size(merge.branches[i])]) {
-                change = merge.branches[i][j];
-                result = change(result);
-                if (2 < verbosity) {
-                    println("\n-- <permutation_name> --\n<result>");
+            // apply all patches on this branch, in order
+            Patch last_patch = last(branch);
+            for (patch <- branch) {
+                result = patch(result);
+
+                if (3 < verbosity && patch != last_patch) {
+                    println("\n    .. <permutation_name> ..\n<indent("    ", toString(result))>");
                 }
             }
+
+            if (2 < verbosity && branch_i != last_branch_i) {
+                println("\n  :: <permutation_name> ::\n<indent("  ", toString(result))>");
+            }
         }
-        if (verbosity == 3) {
+
+        if (1 < verbosity) {
             println("\n-- <permutation_name> --\n<result>");
         }
 
