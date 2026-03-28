@@ -10,6 +10,12 @@ from a brand new user
 - more info on generic syntax in cheatsheet would be nice
 - how to combine `when` clauses
 - even after reading documentation for `parse` and in general on ASTs, it's difficult to figure out what the traversal strategies mean. for "innermost" the "continue until match" is weird
+- in vscode I get a lot of "undefined module" errors after changing file names
+- when I run my code (branch: call-failed) directly, it works, but in vscode, when I try to run main by clicking "Run in new Rascal terminal" above the main method, I get "CallFailed" errors with no output, warnings, suggestions, etc.:
+
+    rascal>main()
+    |prompt:///|(0,4,<1,0>,<1,4>): CallFailed([])
+            at $shell$(|prompt:///|(0,12,<1,0>,<1,12>)ok
 
 ### pattern matching
 
