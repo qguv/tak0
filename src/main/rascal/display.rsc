@@ -1,7 +1,10 @@
 module display
 
+
 import String; // split
 import List; // size
+
+public str letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 str indent(str prefix, str s) {
     list[str] lines = split("\n", s);
