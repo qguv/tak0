@@ -1,5 +1,6 @@
-module remove_ternary_with_boolean_literal_branches
-import js2;
+module patches::remove_ternary_with_boolean_literal_branches
+
+import deeper::js2;
 
 Source remove_ternary_with_boolean_literal_branches(Source unit) = innermost visit(unit) {
     case

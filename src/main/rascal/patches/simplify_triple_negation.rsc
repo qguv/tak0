@@ -1,5 +1,6 @@
-module simplify_triple_negation
-import js2;
+module patches::simplify_triple_negation
+
+import deeper::js2;
 
 Source simplify_triple_negation(Source unit) = innermost visit(unit) {
     case

@@ -1,178 +1,23 @@
 module Main
 
+import vctypes;
+import testcases;
+import deeper::codebase;
+import format;
+import commute;
+
 extend Exception; // ParseError
-import flip_negative_condition;
-import remove_ternary_with_boolean_literal_branches;
-import simplify_triple_negation;
-import remove_conjunction;
-import remove_disjunction;
-import case02a;
-import case02b;
-import IO; // readFile, println
-import js2;
-import ParseTree; // parse
-import String; // trim, size, intercalate
+import IO; // println
+import List; // permutations, size, sort
+import Map; // delete, toList, size
+import ParseTree; // unparse
 import Set; // sort
-import Map; // size
-import Node; // toString
-import util::FileSystem;
-
-alias AST = Source;
-alias Patch = AST(AST);
-alias Branch = list[Patch];
-alias Merge = tuple[AST base, list[Branch] branches];
-
-data Codebase
-    = codebasePath(loc path)
-    | codebaseString(str src)
-    | codebaseAST(AST source);
-
-alias Testcase = tuple[str name, Codebase codebase, list[Branch] branches];
-list[Testcase] testcases = [
-    //<"test linter-style rules", codebasePath(|home:///dev/tak/test/case02.js|), [[case02a], [case02b]]>,
-    <
-        "some binary merges are trivial",
-        codebasePath(|home:///dev/tak/test/boolean0.js|),
-        [
-            [remove_conjunction],
-            [remove_disjunction]
-        ]
-    >,
-    <
-        "some non-trivial binary merges commute",
-        codebasePath(|home:///dev/tak/test/boolean1.js|),
-        [
-            [remove_conjunction],
-            [remove_disjunction]
-        ]
-    >,
-    <
-        "other binary merges don\'t commute (1)",
-        codebasePath(|home:///dev/tak/test/boolean2.js|),
-        [
-            [remove_conjunction],
-            [remove_disjunction]
-        ]
-    >,
-    <
-        "other binary merges don\'t commute (2)",
-        codebasePath(|home:///dev/tak/test/ternary.js|),
-        [
-            [flip_negative_condition],
-            [remove_ternary_with_boolean_literal_branches]
-        ]
-    >,
-    <
-        "some ternary merges don\'t commute",
-        codebasePath(|home:///dev/tak/test/ternary.js|),
-        [
-            [flip_negative_condition],
-            [remove_ternary_with_boolean_literal_branches],
-            [simplify_triple_negation]
-        ]
-    >
-];
-str letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-str strip_multiline_comments(str s) {
-    while (/^<left:.*>\/\*.*\*\/<right:.*>$/s := s) {
-        s = left + right;
-    }
-    return s;
-}
-
-str indent(str prefix, str s) {
-    list[str] lines = split("\n", s);
-    lines = [prefix + line | line <- lines];
-    return intercalate("", lines);
-}
-
-AST parseCodebase(Codebase codebase, int verbosity=0) {
-    switch (codebase) {
-        case codebasePath(src_path): {
-            if (verbosity > 1) {
-                println("\n-- <src_path.file> --");
-            }
-            return parseCodebase(codebaseString(readFile(src_path)), verbosity=verbosity);
-        }
-        case codebaseString(s): {
-            s = strip_multiline_comments(s);
-            s = trim(s);
-            AST ast = parse(#AST, trim(s));
-            Codebase codebase = codebaseAST(ast);
-            return parseCodebase(codebase, verbosity=verbosity);
-        }
-        case codebaseAST(n): {
-            if (verbosity > 1) {
-                println(n);
-            }
-            return n;
-        }
-    }
-    return parse(#AST, "");
-}
-
-map[AST, list[str]] commute(Merge merge, int verbosity = 0) {
-    map[AST, list[str]] results = ();
-
-    // go through each permutation of the branches
-    int num_permutations = 0;
-    for (branch_order <- sort(permutations([0..size(merge.branches)]))) {
-        num_permutations += 1;
-
-        if (1 < verbosity) {
-            println("\n-- permutation <intercalate("", [letters[branch_i] | branch_i <- branch_order])> --");
-        }
-
-        // apply each branch in the permuted order
-        AST result = merge.base;
-        list[str] permutation_name = [];
-        int last_branch_i = last(branch_order);
-        for (branch_i <- branch_order) {
-            Branch branch = merge.branches[branch_i];
-            permutation_name += [letters[branch_i]];
-
-            if (2 < verbosity) {
-                println("\n  :: branch <intercalate(", then branch ", permutation_name)> ::");
-            }
-
-            // apply all patches on this branch, in order
-            for (patch_i <- [0..size(branch)]) {
-                Patch patch = branch[patch_i];
-                result = patch(result);
-
-                if (3 < verbosity) {
-                    println("\n    .. patch <patch_i> ..\n<indent("    ", unparse(result))>");
-                }
-            }
-
-            if (verbosity == 3) {
-                println("<indent("  ", unparse(result))>");
-            }
-        }
-
-        if (verbosity == 2) {
-            println(result);
-        }
-
-        if (result in results) {
-            results[result] += [intercalate("", permutation_name)];
-        } else {
-            results[result] = [intercalate("", permutation_name)];
-        }
-
-    }
-    return results;
-}
-
-str plural(str s, list[value] xs) {
-    return size(xs) == 1 ? s : "<s>s";
-}
+import String; // split, intercalate, startsWith
 
 void demo(int verbosity=0) {
 
     int test_i = 0;
-    for (<case_name, base_codebase, branches> <- testcases) {
+    for (<case_name, base_codebase, branches> <- commuteTests) {
         println("\n== test #<test_i>: <case_name> ==");
         test_i += 1;
 

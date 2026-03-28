@@ -1,5 +1,6 @@
-module case02b
-import js2;
+module patches::case02b
+
+import deeper::js2;
 
 Source case02b(Source unit) = innermost visit(unit) {
 

@@ -7,7 +7,7 @@ It assumes:
 @contributor{
 Tijs van der Storm - CWI (storm@cwi.nl)
 }
-module js2
+module deeper::js2
 
 start syntax Source 
   = source: Statement* statements
