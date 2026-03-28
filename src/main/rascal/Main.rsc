@@ -9,7 +9,8 @@ import case02b;
 import IO; // readFile, println
 import js2;
 import ParseTree; // parse
-import String; // trim
+import String; // trim, size
+import Map; // size
 import util::FileSystem;
 
 alias Change = Source(Source);
@@ -27,6 +28,7 @@ void main(list[str] args) {
     int verbosity = sum([size(arg) - 1 | arg <- args, startsWith(arg, "-v")] + [0]);
 
     for (<src_path, changes> <- testcases) {
+        map[Source, list[str]] results = [];
 
         println("\n== <src_path.file> ==");
         str src = readFile(src_path);
@@ -36,11 +38,6 @@ void main(list[str] args) {
             Source src_ast = parse(#Source, src);
             println("<src_ast>");
 
-            list[tuple[str name, Source ast]] noncommuting = [];
-            list[tuple[str name, Source ast]] nontrivial = [];
-
-            Source first_result = src_ast; // dummy value
-            str first_permutation_name = ""; // dummy value
             int num_permutations = 0;
             for (permutation <- permutations([0..size(changes)])) {
                 num_permutations += 1;
@@ -59,30 +56,24 @@ void main(list[str] args) {
                     println("\n-- <permutation_name> --\n<result>");
                 }
 
-                // trivial?
-                if (result != src_ast) {
-                    nontrivial += <permutation_name, result>;
-                }
-
-                // commutes?
-                if (first_permutation_name == "") {
-                    first_permutation_name = permutation_name;
-                    first_result = result;
-                } else if (result != first_result) {
-                    noncommuting += <permutation_name, result>;
+                if (result in results) {
+                    results[result] += [permutation_name];
+                } else {
+                    results[result] = [permutation_name];
                 }
             }
 
             println("\n-- results --");
-            println("trivial?  <
-                isEmpty(nontrivial) ? "always"
-                : size(nontrivial) == num_permutations - 1 ? "never"
+            str trivial = (
+                !(src_ast in results) ? "never"
+                : size(results) == 1 ? "always"
                 : "sometimes"
-            >");
+            );
+            println("trivial?  <trivial>");
             println("commutes? <
-                isEmpty(nontrivial) ? "yes (trivially)"
-                : isEmpty(noncommuting) ? "yes"
-                : "no (<first_permutation_name> differs from <intercalate(", ", [r.name | r <- noncommuting])>)"
+                trivial == "always" ? "yes (trivially)"
+                : size(results) == 1 ? "yes"
+                : "no (<intercalate(" != ", [intercalate("/", results[r]) | r <- results])>"
             >");
 
         } catch ParseError(loc l): {

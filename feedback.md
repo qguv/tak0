@@ -11,6 +11,7 @@ from a brand new user
 - how to combine `when` clauses
 - even after reading documentation for `parse` and in general on ASTs, it's difficult to figure out what the traversal strategies mean. for "innermost" the "continue until match" is weird
 - in vscode I get a lot of "undefined module" errors after changing file names
+- what the hell does "missing calculator" mean? (branch: missing-calculator) no documentation, not in source when searching [github](https://github.com/search?q=repo%3Ausethesource%2Frascal+%22missing+calculator%22&type=code)
 - when I run my code (branch: call-failed) directly, it works, but in vscode, when I try to run main by clicking "Run in new Rascal terminal" above the main method, I get "CallFailed" errors with no output, warnings, suggestions, etc.:
 
     rascal>main()
