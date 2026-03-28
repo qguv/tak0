@@ -16,84 +16,155 @@ import Map; // size
 import Node; // toString
 import util::FileSystem;
 
+alias AST = Source;
+alias Patch = AST(AST);
+alias Branch = list[Patch];
+alias Merge = tuple[AST base, list[Branch] branches];
+
 data Codebase
     = codebasePath(loc path)
     | codebaseString(str src)
-    | codebaseAST(Source source);
+    | codebaseAST(AST source);
 
-alias Patch = Source(Source);
-alias Branch = list[Patch];
-alias Merge = tuple[Codebase, list[Branch]];
-list[Merge] testcases = [
-    <codebasePath(|home:///dev/tak/test/ternary.js|), [[flip_negative_condition], [remove_ternary_with_boolean_literal_branches]]>,
-    <codebasePath(|home:///dev/tak/test/ternary.js|), [[flip_negative_condition], [remove_ternary_with_boolean_literal_branches], [simplify_triple_negation]]>,
-    <codebasePath(|home:///dev/tak/test/boolean1.js|), [[remove_conjunction], [remove_disjunction]]>,
-    <codebasePath(|home:///dev/tak/test/boolean2.js|), [[remove_conjunction], [remove_disjunction]]>
-    //<codebasePath(|home:///dev/tak/test/case02.js|), [[case02a], [case02b]]>
+alias Testcase = tuple[str name, Codebase codebase, list[Branch] branches];
+list[Testcase] testcases = [
+    //<"test linter-style rules", codebasePath(|home:///dev/tak/test/case02.js|), [[case02a], [case02b]]>,
+    <
+        "some binary merges are trivial",
+        codebasePath(|home:///dev/tak/test/boolean0.js|),
+        [
+            [remove_conjunction],
+            [remove_disjunction]
+        ]
+    >,
+    <
+        "some non-trivial binary merges commute",
+        codebasePath(|home:///dev/tak/test/boolean1.js|),
+        [
+            [remove_conjunction],
+            [remove_disjunction]
+        ]
+    >,
+    <
+        "other binary merges don\'t commute (1)",
+        codebasePath(|home:///dev/tak/test/boolean2.js|),
+        [
+            [remove_conjunction],
+            [remove_disjunction]
+        ]
+    >,
+    <
+        "other binary merges don\'t commute (2)",
+        codebasePath(|home:///dev/tak/test/ternary.js|),
+        [
+            [flip_negative_condition],
+            [remove_ternary_with_boolean_literal_branches]
+        ]
+    >,
+    <
+        "some ternary merges don\'t commute",
+        codebasePath(|home:///dev/tak/test/ternary.js|),
+        [
+            [flip_negative_condition],
+            [remove_ternary_with_boolean_literal_branches],
+            [simplify_triple_negation]
+        ]
+    >
 ];
 str letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-Source parseCodebase(Codebase codebase) {
+str strip_multiline_comments(str s) {
+    while (/^<left:.*>\/\*.*\*\/<right:.*>$/s := s) {
+        s = left + right;
+    }
+    return s;
+}
+
+AST parseCodebase(Codebase codebase, int verbosity=0) {
     switch (codebase) {
         case codebasePath(src_path): {
-            println("\n== <src_path.file> ==");
-            return parseCodebase(codebaseString(readFile(src_path)));
+            if (verbosity > 1) {
+                println("\n-- <src_path.file> --");
+            }
+            return parseCodebase(codebaseString(readFile(src_path)), verbosity=verbosity);
         }
         case codebaseString(s): {
-            return parseCodebase(codebaseAST(parse(#Source, trim(s))));
+            s = strip_multiline_comments(s);
+            s = trim(s);
+            AST ast = parse(#AST, trim(s));
+            Codebase codebase = codebaseAST(ast);
+            return parseCodebase(codebase);
         }
         case codebaseAST(n): {
-            println(n);
+            if (verbosity > 1) {
+                println(n);
+            }
             return n;
         }
     }
-    return parse(#Source, "");
+    return parse(#AST, "");
+}
+
+map[AST, list[str]] commute(Merge merge, int verbosity = 0) {
+    map[AST, list[str]] results = ();
+
+    int num_permutations = 0;
+    for (permutation <- permutations([0..size(merge.branches)])) {
+        num_permutations += 1;
+
+        AST result = merge.base;
+        str permutation_name = "";
+        for (i <- permutation) {
+            permutation_name += letters[i];
+
+            for (j <- [0..size(merge.branches[i])]) {
+                change = merge.branches[i][j];
+                result = change(result);
+                if (2 < verbosity) {
+                    println("\n-- <permutation_name> --\n<result>");
+                }
+            }
+        }
+        if (verbosity == 3) {
+            println("\n-- <permutation_name> --\n<result>");
+        }
+
+        if (result in results) {
+            results[result] += [permutation_name];
+        } else {
+            results[result] = [permutation_name];
+        }
+
+    }
+    return results;
+}
+
+str plural(str s, list[value] xs) {
+    return size(xs) == 1 ? s : "<s>s";
 }
 
 void main(list[str] args) {
 
     // to increase verbosity to 4, use -vvvv or -v -v -v -v (or a combination)
-    int verbosity = sum([size(arg) - 1 | arg <- args, startsWith(arg, "-v")] + [0]);
+    int verbosity = (0 | it + size(arg) - 1 | arg <- args, startsWith(arg, "-v"));
 
-    for (<codebase, changes> <- testcases) {
-        map[Source, list[str]] results = ();
+    int test_i = 0;
+    for (<case_name, base_codebase, branches> <- testcases) {
+        println("\n== test #<test_i>: <case_name> ==");
+        test_i += 1;
 
         try {
-            Source src_ast = parseCodebase(codebase);
+            AST base = parseCodebase(base_codebase, verbosity=verbosity);
 
-            int num_permutations = 0;
-            for (permutation <- permutations([0..size(changes)])) {
-                num_permutations += 1;
+            map[AST, list[str]] results = commute(<base, branches>, verbosity=verbosity);
 
-                Source result = src_ast;
-                str permutation_name = "";
-                for (i <- permutation) {
-                    permutation_name += letters[i];
+            // TODO: idempotence
 
-                    for (j <- [0..size(changes[i])]) {
-                        change = changes[i][j];
-                        result = change(result);
-                        if (1 < verbosity) {
-                            println("\n-- <permutation_name> --\n<result>");
-                        }
-                    }
-                }
-                if (verbosity == 1) {
-                    println("\n-- <permutation_name> --\n<result>");
-                }
-
-                if (result in results) {
-                    results[result] += [permutation_name];
-                } else {
-                    results[result] = [permutation_name];
-                }
-
-                // TODO: idempotence
+            if (1 < verbosity) {
+                println("\n-- results --");
             }
-
-            println("\n-- results --");
             str trivial = (
-                src_ast in results ? (
+                base in results ? (
                     size(results) == 1 ? "always"
                     : "sometimes"
                 )
@@ -106,9 +177,26 @@ void main(list[str] args) {
                 : "no (<intercalate(" != ", [intercalate("/", results[r]) | r <- results])>)"
             >");
 
+            if (verbosity == 1) {
+
+                map[AST, str] results_formatted = (
+                    ast: "permutation " + intercalate("/", sort(results[ast]))
+                    | ast <- results
+                );
+
+                str base_name = "base";
+                if (base in results_formatted) {
+                    base_name += " & " + results_formatted[base];
+                    results_formatted = delete(results_formatted, base);
+                }
+
+                for (<result, result_name> <- [<base, base_name>] + sort(toList(results_formatted))) {
+                    println("\n-- <result_name> --\n<result>");
+                }
+            }
+
         } catch ParseError(loc l): {
-            println("I found a parse error at line <l.begin.line>, column <l.begin.column>");
-            return;
+            println("javascript parse error in <l>\n  line <l.begin.line>, column <l.begin.column>");
         }
     }
 }
