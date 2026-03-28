@@ -11,13 +11,12 @@ import patches::simplify_triple_negation;
 
 extend Exception; // ParseError
 
-import IO; // readFile, println
+import IO; // readFile, println, getResource
 import Map; // size
 import Node; // toString
 import ParseTree; // parse
-import Set; // sort
+import Set; // sort, getFirstFrom
 import String; // trim, size, intercalate
-import util::FileSystem;
 
 alias AST = Source;
 alias Patch = AST(AST);
@@ -30,11 +29,12 @@ data Codebase
     | codebaseAST(AST source);
 
 alias Testcase = tuple[str name, Codebase codebase, list[Branch] branches];
+
 list[Testcase] testcases = [
     //<"test linter-style rules", codebasePath(|home:///dev/tak/test/case02.js|), [[case02a], [case02b]]>,
     <
         "some binary merges are trivial",
-        codebasePath(|home:///dev/tak/test/boolean0.js|),
+        codebasePath(getResource("bases/boolean0.js")),
         [
             [remove_conjunction],
             [remove_disjunction]
@@ -42,7 +42,7 @@ list[Testcase] testcases = [
     >,
     <
         "some non-trivial binary merges commute",
-        codebasePath(|home:///dev/tak/test/boolean1.js|),
+        codebasePath(getResource("bases/boolean1.js")),
         [
             [remove_conjunction],
             [remove_disjunction]
@@ -50,7 +50,7 @@ list[Testcase] testcases = [
     >,
     <
         "other binary merges don\'t commute (1)",
-        codebasePath(|home:///dev/tak/test/boolean2.js|),
+        codebasePath(getResource("bases/boolean2.js")),
         [
             [remove_conjunction],
             [remove_disjunction]
@@ -58,7 +58,7 @@ list[Testcase] testcases = [
     >,
     <
         "other binary merges don\'t commute (2)",
-        codebasePath(|home:///dev/tak/test/ternary.js|),
+        codebasePath(getResource("bases/ternary.js")),
         [
             [flip_negative_condition],
             [remove_ternary_with_boolean_literal_branches]
@@ -66,7 +66,7 @@ list[Testcase] testcases = [
     >,
     <
         "some ternary merges don\'t commute",
-        codebasePath(|home:///dev/tak/test/ternary.js|),
+        codebasePath(getResource("bases/ternary.js")),
         [
             [flip_negative_condition],
             [remove_ternary_with_boolean_literal_branches],
