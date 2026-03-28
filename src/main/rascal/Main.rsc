@@ -11,7 +11,8 @@ import case02b;
 import IO; // readFile, println
 import js2;
 import ParseTree; // parse
-import String; // trim, size
+import String; // trim, size, intercalate
+import Set; // sort
 import Map; // size
 import Node; // toString
 import util::FileSystem;
@@ -116,40 +117,48 @@ map[AST, list[str]] commute(Merge merge, int verbosity = 0) {
 
     // go through each permutation of the branches
     int num_permutations = 0;
-    for (branch_order <- permutations([0..size(merge.branches)])) {
+    for (branch_order <- sort(permutations([0..size(merge.branches)]))) {
         num_permutations += 1;
+
+        if (1 < verbosity) {
+            println("\n-- permutation <intercalate("", [letters[branch_i] | branch_i <- branch_order])> --");
+        }
 
         // apply each branch in the permuted order
         AST result = merge.base;
-        str permutation_name = "";
+        list[str] permutation_name = [];
         int last_branch_i = last(branch_order);
         for (branch_i <- branch_order) {
             Branch branch = merge.branches[branch_i];
-            permutation_name += letters[branch_i];
+            permutation_name += [letters[branch_i]];
+
+            if (2 < verbosity) {
+                println("\n  :: branch <intercalate(", then branch ", permutation_name)> ::");
+            }
 
             // apply all patches on this branch, in order
-            Patch last_patch = last(branch);
-            for (patch <- branch) {
+            for (patch_i <- [0..size(branch)]) {
+                Patch patch = branch[patch_i];
                 result = patch(result);
 
-                if (3 < verbosity && patch != last_patch) {
-                    println("\n    .. <permutation_name> ..\n<indent("    ", toString(result))>");
+                if (3 < verbosity) {
+                    println("\n    .. patch <patch_i> ..\n<indent("    ", unparse(result))>");
                 }
             }
 
-            if (2 < verbosity && branch_i != last_branch_i) {
-                println("\n  :: <permutation_name> ::\n<indent("  ", toString(result))>");
+            if (verbosity == 3) {
+                println("<indent("  ", unparse(result))>");
             }
         }
 
-        if (1 < verbosity) {
-            println("\n-- <permutation_name> --\n<result>");
+        if (verbosity == 2) {
+            println(result);
         }
 
         if (result in results) {
-            results[result] += [permutation_name];
+            results[result] += [intercalate("", permutation_name)];
         } else {
-            results[result] = [permutation_name];
+            results[result] = [intercalate("", permutation_name)];
         }
 
     }
@@ -160,10 +169,7 @@ str plural(str s, list[value] xs) {
     return size(xs) == 1 ? s : "<s>s";
 }
 
-void main(list[str] args) {
-
-    // to increase verbosity to 4, use -vvvv or -v -v -v -v (or a combination)
-    int verbosity = (0 | it + size(arg) - 1 | arg <- args, startsWith(arg, "-v"));
+void demo(int verbosity=0) {
 
     int test_i = 0;
     for (<case_name, base_codebase, branches> <- testcases) {
@@ -176,23 +182,6 @@ void main(list[str] args) {
             map[AST, list[str]] results = commute(<base, branches>, verbosity=verbosity);
 
             // TODO: idempotence
-
-            if (1 < verbosity) {
-                println("\n-- results --");
-            }
-            str trivial = (
-                base in results ? (
-                    size(results) == 1 ? "always"
-                    : "sometimes"
-                )
-                : "never"
-            );
-            println("trivial?  <trivial>");
-            println("commutes? <
-                trivial == "always" ? "yes (trivially)"
-                : size(results) == 1 ? "yes"
-                : "no (<intercalate(" != ", sort([intercalate("/", results[r]) | r <- results]))>)"
-            >");
 
             if (verbosity == 1) {
 
@@ -212,8 +201,46 @@ void main(list[str] args) {
                 }
             }
 
+            if (0 < verbosity) {
+                println("\n-- results --");
+            }
+
+            str trivial = (
+                base in results ? (
+                    size(results) == 1 ? "always"
+                    : "sometimes"
+                )
+                : "never"
+            );
+            println("trivial?  <trivial>");
+            println("commutes? <
+                trivial == "always" ? "yes (trivially)"
+                : size(results) == 1 ? "yes"
+                : "no (<intercalate(" != ", sort([intercalate("/", sort(results[r])) | r <- results]))>)"
+            >");
+
         } catch ParseError(loc l): {
             println("javascript parse error in <l>\n  line <l.begin.line>, column <l.begin.column>");
         }
     }
+}
+
+/*
+    verbosity: pass multiple `-v` flags on the command line to increase verbosity. you can also use a repeated `-vv...`. for example, `-v -vv` and `-vvv` both set verbosity to 3
+
+    levels:
+
+    0. just show the properties of each merge
+    1. show each *unique* output generated by one or more permutations, labelled with the permutation(s) that generated it, followed by the results
+    2. show each permutation and its output in order, followed by the results
+    3. as above, but also show the intermediate state after applying each branch in a permutation
+    4. as above, but also show the intermediate states after applying each patch in a branch
+*/
+int get_verbosity(list[str] args) {
+    return (0 | it + size(arg) - 1 | arg <- args, startsWith(arg, "-v"));
+}
+
+void main(list[str] args) {
+    int verbosity = get_verbosity(args);
+    demo(verbosity=verbosity);
 }
