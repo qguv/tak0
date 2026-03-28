@@ -18,57 +18,79 @@ import String; // trim, size, intercalate
 void demo(int verbosity=0) {
 
     int test_i = 0;
-    for (<case_name, base_codebase, branches> <- getTestcases()) {
+    for (<case_name, base_codebase, prop> <- getTestcases()) {
         println("\n== test #<test_i>: <case_name> ==");
         test_i += 1;
 
         try {
             AST base = parseCodebase(base_codebase, verbosity=verbosity);
+            switch (prop) {
 
-            map[AST, list[str]] results = commute(<base, branches>, verbosity=verbosity);
+                case propCommutes(branches): {
+                    map[AST, list[str]] results = commute(<base, branches>, verbosity=verbosity);
 
-            // TODO: idempotence
+                    if (verbosity == 1) {
 
-            if (verbosity == 1) {
+                        map[AST, str] results_formatted = (
+                            ast: "permutation " + intercalate("/", sort(results[ast]))
+                            | ast <- results
+                        );
 
-                map[AST, str] results_formatted = (
-                    ast: "permutation " + intercalate("/", sort(results[ast]))
-                    | ast <- results
-                );
+                        str base_name = "base";
+                        if (base in results_formatted) {
+                            base_name += " & " + results_formatted[base];
+                            results_formatted = delete(results_formatted, base);
+                        }
 
-                str base_name = "base";
-                if (base in results_formatted) {
-                    base_name += " & " + results_formatted[base];
-                    results_formatted = delete(results_formatted, base);
+                        for (<result, result_name> <- [<base, base_name>] + sort(toList(results_formatted))) {
+                            println("\n-- <result_name> --\n<result>");
+                        }
+                    }
+
+                    if (0 < verbosity) {
+                        println("\n-- results --");
+                    }
+
+                    str trivial = (
+                        base in results ? (
+                            size(results) == 1 ? "always"
+                            : "sometimes"
+                        )
+                        : "never"
+                    );
+                    println("trivial?  <trivial>");
+                    println("commutes? <
+                        trivial == "always" ? "yes (trivially)"
+                        : size(results) == 1 ? "yes"
+                        : "no (<intercalate(" != ", sort([intercalate("/", sort(results[r])) | r <- results]))>)"
+                    >");
                 }
 
-                for (<result, result_name> <- [<base, base_name>] + sort(toList(results_formatted))) {
-                    println("\n-- <result_name> --\n<result>");
+                case propFixedPoint(branch): {
+                    applyUntilStable(base, branch);
                 }
             }
-
-            if (0 < verbosity) {
-                println("\n-- results --");
-            }
-
-            str trivial = (
-                base in results ? (
-                    size(results) == 1 ? "always"
-                    : "sometimes"
-                )
-                : "never"
-            );
-            println("trivial?  <trivial>");
-            println("commutes? <
-                trivial == "always" ? "yes (trivially)"
-                : size(results) == 1 ? "yes"
-                : "no (<intercalate(" != ", sort([intercalate("/", sort(results[r])) | r <- results]))>)"
-            >");
 
         } catch ParseError(loc l): {
             println("javascript parse error in <l>\n  line <l.begin.line>, column <l.begin.column>");
         }
     }
+}
+
+bool applyUntilStable(AST base, Branch branch) {
+    maxAttempts = 100;
+
+    AST result = base;
+    for (_ <- [0..maxAttempts]) {
+        AST last_result = result;
+        for (patch <- branch) {
+            result = patch(result);
+        }
+        if (result == last_result) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /*

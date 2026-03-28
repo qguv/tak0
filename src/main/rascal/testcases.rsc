@@ -1,6 +1,8 @@
 module testcases
 
 import codebase;
+import patches::add_log_general;
+import patches::add_log_specific;
 import patches::flip_negative_condition;
 import patches::remove_conjunction;
 import patches::remove_disjunction;
@@ -10,49 +12,67 @@ import vctypes;
 
 import IO; // getResource
 
-alias Testcase = tuple[str name, Codebase codebase, list[Branch] branches];
+data VCProperty
+    = propCommutes(list[Branch] branches)
+    | propFixedPoint(Branch branch);
+
+alias Testcase = tuple[
+    str name,
+    Codebase codebase,
+    VCProperty prop
+];
 
 list[Testcase] getTestcases() = [
     //<"test linter-style rules", codebasePath(|home:///dev/tak/test/case02.js|), [[case02a], [case02b]]>,
     <
         "some binary merges are trivial",
         codebasePath(getResource("bases/boolean0.js")),
-        [
+        propCommutes([
             [remove_conjunction],
             [remove_disjunction]
-        ]
+        ])
     >,
     <
         "some non-trivial binary merges commute",
         codebasePath(getResource("bases/boolean1.js")),
-        [
+        propCommutes([
             [remove_conjunction],
             [remove_disjunction]
-        ]
+        ])
     >,
     <
         "other binary merges don\'t commute (1)",
         codebasePath(getResource("bases/boolean2.js")),
-        [
+        propCommutes([
             [remove_conjunction],
             [remove_disjunction]
-        ]
+        ])
     >,
     <
         "other binary merges don\'t commute (2)",
         codebasePath(getResource("bases/ternary.js")),
-        [
+        propCommutes([
             [flip_negative_condition],
             [remove_ternary_with_boolean_literal_branches]
-        ]
+        ])
     >,
     <
         "some ternary merges don\'t commute",
         codebasePath(getResource("bases/ternary.js")),
-        [
+        propCommutes([
             [flip_negative_condition],
             [remove_ternary_with_boolean_literal_branches],
             [simplify_triple_negation]
-        ]
+        ])
+    >,
+    <
+        "some additive patches are idempotent",
+        codebasePath(getResource("bases/function.js")),
+        propFixedPoint([add_log_specific])
+    >,
+    <
+        "but most additive patches are not idempotent",
+        codebasePath(getResource("bases/function.js")),
+        propFixedPoint([add_log_general])
     >
 ];
