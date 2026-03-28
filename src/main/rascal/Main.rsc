@@ -89,7 +89,7 @@ AST parseCodebase(Codebase codebase, int verbosity=0) {
         case codebaseString(s): {
             s = strip_multiline_comments(s);
             s = trim(s);
-            AST ast = parse(#AST, trim(s));
+            AST ast = parse(#Source, trim(s));
             Codebase codebase = codebaseAST(ast);
             return parseCodebase(codebase, verbosity=verbosity);
         }
