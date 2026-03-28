@@ -16,32 +16,50 @@ import Map; // size
 import Node; // toString
 import util::FileSystem;
 
-alias Change = Source(Source);
-alias Testcase = tuple[loc, list[Change]];
-list[Testcase] testcases = [
-    <|home:///dev/tak/test/ternary.js|, [flip_negative_condition, remove_ternary_with_boolean_literal_branches]>,
-    <|home:///dev/tak/test/ternary.js|, [flip_negative_condition, remove_ternary_with_boolean_literal_branches, simplify_triple_negation]>,
-    <|home:///dev/tak/test/boolean1.js|, [remove_conjunction, remove_disjunction]>,
-    <|home:///dev/tak/test/boolean2.js|, [remove_conjunction, remove_disjunction]>
-    //<|home:///dev/tak/test/case02.js|, [case02a, case02b]>
+data Codebase
+    = codebasePath(loc path)
+    | codebaseString(str src)
+    | codebaseAST(Source source);
+
+alias Patch = Source(Source);
+alias Branch = list[Patch];
+alias Merge = tuple[Codebase, list[Branch]];
+list[Merge] testcases = [
+    <codebasePath(|home:///dev/tak/test/ternary.js|), [[flip_negative_condition], [remove_ternary_with_boolean_literal_branches]]>,
+    <codebasePath(|home:///dev/tak/test/ternary.js|), [[flip_negative_condition], [remove_ternary_with_boolean_literal_branches], [simplify_triple_negation]]>,
+    <codebasePath(|home:///dev/tak/test/boolean1.js|), [[remove_conjunction], [remove_disjunction]]>,
+    <codebasePath(|home:///dev/tak/test/boolean2.js|), [[remove_conjunction], [remove_disjunction]]>
+    //<codebasePath(|home:///dev/tak/test/case02.js|), [[case02a], [case02b]]>
 ];
 str letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+Source parseCodebase(Codebase codebase) {
+    switch (codebase) {
+        case codebasePath(src_path): {
+            println("\n== <src_path.file> ==");
+            return parseCodebase(codebaseString(readFile(src_path)));
+        }
+        case codebaseString(s): {
+            return parseCodebase(codebaseAST(parse(#Source, trim(s))));
+        }
+        case codebaseAST(n): {
+            println(n);
+            return n;
+        }
+    }
+    return parse(#Source, "");
+}
 
 void main(list[str] args) {
 
     // to increase verbosity to 4, use -vvvv or -v -v -v -v (or a combination)
     int verbosity = sum([size(arg) - 1 | arg <- args, startsWith(arg, "-v")] + [0]);
 
-    for (<src_path, changes> <- testcases) {
-        map[str, list[str]] results = ();
-
-        println("\n== <src_path.file> ==");
-        str src = readFile(src_path);
-        src = trim(src);
+    for (<codebase, changes> <- testcases) {
+        map[Source, list[str]] results = ();
 
         try {
-            Source src_ast = parse(#Source, src);
-            println("<src_ast>");
+            Source src_ast = parseCodebase(codebase);
 
             int num_permutations = 0;
             for (permutation <- permutations([0..size(changes)])) {
@@ -51,21 +69,23 @@ void main(list[str] args) {
                 str permutation_name = "";
                 for (i <- permutation) {
                     permutation_name += letters[i];
-                    change = changes[i];
-                    result = change(result);
-                    if (1 < verbosity) {
-                        println("\n-- <permutation_name> --\n<result>");
+
+                    for (j <- [0..size(changes[i])]) {
+                        change = changes[i][j];
+                        result = change(result);
+                        if (1 < verbosity) {
+                            println("\n-- <permutation_name> --\n<result>");
+                        }
                     }
                 }
                 if (verbosity == 1) {
                     println("\n-- <permutation_name> --\n<result>");
                 }
 
-                str result_str = toString(result);
-                if (result_str in results) {
-                    results[result_str] += [permutation_name];
+                if (result in results) {
+                    results[result] += [permutation_name];
                 } else {
-                    results[result_str] = [permutation_name];
+                    results[result] = [permutation_name];
                 }
 
                 // TODO: idempotence
@@ -73,7 +93,7 @@ void main(list[str] args) {
 
             println("\n-- results --");
             str trivial = (
-                src in results ? (
+                src_ast in results ? (
                     size(results) == 1 ? "always"
                     : "sometimes"
                 )
