@@ -61,7 +61,7 @@ int checkFixedPoint(AST base, Branch branch, int verbosity=0, int maxAttempts=4)
     }
 
     if (verbosity == 1) {
-        println("\n-- repetition <maxAttempts> (last attempt) --\n<result>");
+        println("\n-- application <maxAttempts> (last attempt) --\n<result>");
     }
     return -1;
 }

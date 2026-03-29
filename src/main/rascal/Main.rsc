@@ -107,7 +107,9 @@ void demo(int verbosity=0) {
 }
 
 /*
-    verbosity: pass multiple `-v` flags on the command line to increase verbosity. you can also use a repeated `-vv...`. for example, `-v -vv` and `-vvv` both set verbosity to 3
+    verbosity: pass multiple `-v`/`-q` flags on the command line to increase/decrease verbosity.
+    you can also use a repeated `-vv...`. for example, `-v -vv -q` and `-vvv -q` both set verbosity to 2.
+    just don't use mixed strings like `-vvq` :)
 
     levels:
 
@@ -118,7 +120,10 @@ void demo(int verbosity=0) {
     4. as above, but also show the intermediate states after applying each patch in a branch
 */
 int get_verbosity(list[str] args) {
-    return (0 | it + size(arg) - 1 | arg <- args, startsWith(arg, "-v"));
+    int verbosity = 1;
+    verbosity += (0 | it + size(arg) - 1 | arg <- args, startsWith(arg, "-v"));
+    verbosity -= (0 | it + size(arg) - 1 | arg <- args, startsWith(arg, "-q"));
+    return verbosity;
 }
 
 void main(list[str] args) {
