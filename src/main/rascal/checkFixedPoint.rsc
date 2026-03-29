@@ -1,9 +1,7 @@
-module fixedpoint
+module checkFixedPoint
 
 import codebase;
-import commute;
-import display;
-import testcases;
+import displayUtils;
 import vctypes;
 
 extend Exception; // ParseError

@@ -1,8 +1,7 @@
-module commute
+module checkCommute
 
 import codebase;
-import display;
-import testcases;
+import displayUtils;
 import vctypes;
 
 extend Exception; // ParseError

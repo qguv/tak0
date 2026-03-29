@@ -1,4 +1,4 @@
-module display
+module displayUtils
 
 import String; // split
 import List; // size

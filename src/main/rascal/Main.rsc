@@ -1,9 +1,9 @@
 module Main
 
 import codebase;
-import commute;
-import display;
-import fixedpoint;
+import checkCommute;
+import displayUtils;
+import checkFixedPoint;
 import testcases;
 import vctypes;
 
