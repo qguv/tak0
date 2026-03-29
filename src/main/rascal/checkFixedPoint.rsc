@@ -1,9 +1,6 @@
 module checkFixedPoint
 
-import codebase;
-import commute;
 import display;
-import testcases;
 import vctypes;
 
 extend Exception; // ParseError
