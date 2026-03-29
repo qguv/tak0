@@ -76,8 +76,8 @@ void demo(int verbosity=0) {
                     >");
                 }
 
-                case propFixedPoint(branch): {
-                    int fixedPointAfter = checkFixedPoint(base, branch, verbosity=verbosity);
+                case propFixedPoint(branch, maxAttempts=maxAttempts): {
+                    int fixedPointAfter = checkFixedPoint(base, branch, verbosity=verbosity, maxAttempts=maxAttempts);
                     if (0 < verbosity) {
                         println("\n-- result --");
                     }

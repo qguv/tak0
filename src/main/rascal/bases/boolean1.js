@@ -1,1 +1,1 @@
-var x = false || true && false;
+var x = true && false || true && false;

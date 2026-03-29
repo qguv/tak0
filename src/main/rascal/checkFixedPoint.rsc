@@ -21,8 +21,7 @@ import String; // trim, size, intercalate
     2: twice
     ...: etc.
 */
-int checkFixedPoint(AST base, Branch branch, int verbosity=0) {
-    maxAttempts = 3;
+int checkFixedPoint(AST base, Branch branch, int verbosity=0, int maxAttempts=4) {
 
     AST result = base;
     for (i <- [0..maxAttempts]) {

@@ -7,6 +7,7 @@ import patches::flip_negative_condition;
 import patches::remove_conjunction;
 import patches::remove_disjunction;
 import patches::remove_ternary_with_boolean_literal_branches;
+import patches::remove_parentheses_around_literal;
 import patches::simplify_triple_negation;
 import vctypes;
 
@@ -14,7 +15,7 @@ import IO; // getResource
 
 data VCProperty
     = propCommutes(list[Branch] branches)
-    | propFixedPoint(Branch branch);
+    | propFixedPoint(Branch branch, int maxAttempts=4);
 
 alias Testcase = tuple[
     str name,
@@ -79,5 +80,10 @@ list[Testcase] getTestcases() = [
         "but most additive patches are not idempotent",
         codebasePath(getResource("bases/function.js")),
         propFixedPoint([add_log_general])
+    >,
+    <
+        "some patches can take some time before reaching a fixed point",
+        codebasePath(getResource("bases/nested.js")),
+        propFixedPoint([remove_disjunction, remove_conjunction, remove_parentheses_around_literal], maxAttempts=5)
     >
 ];
