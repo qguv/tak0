@@ -20,11 +20,12 @@ void demo(int verbosity=0) {
     int test_i = 0;
     list[Testcase] allTests = getTestcases();
     for (<case_name, base_codebase, prop> <- allTests) {
-        if (0 < verbosity) {
+        println("\n\n== test <test_i+1> of <size(allTests)>: <case_name> ==");
+        test_i += 1;
+
+        if (verbosity == 0) {
             println("");
         }
-        println("\n== test <test_i+1> of <size(allTests)>: <case_name> ==");
-        test_i += 1;
 
         try {
             AST base = parseCodebase(base_codebase, verbosity=verbosity);
@@ -62,9 +63,11 @@ void demo(int verbosity=0) {
                         )
                         : "never"
                     );
-                    print(ansi_bold("  trivial?"));
+                    print("• ");
+                    print(ansi_bold("trivial?"));
                     println("      <trivial>");
-                    print(ansi_bold("  commutes?"));
+                    print("• ");
+                    print(ansi_bold("commutes?"));
                     println("     <
                         trivial == "always" ? "yes     <ansi_italic("(trivially)")>"
                         : size(results) == 1 ? "yes"
@@ -77,19 +80,18 @@ void demo(int verbosity=0) {
                     if (0 < verbosity) {
                         println("\n-- result --");
                     }
+                    print("• ");
+                    print(ansi_bold("fixed point?"));
                     switch (fixedPointAfter) {
                         case -1: {
-                            print(ansi_bold("  fixed point?"));
                             print("  no      ");
                             println(ansi_italic("(maximum attempts exceeded)"));
                         }
                         case 0: {
-                            print(ansi_bold("  fixed point?"));
                             print("  yes     ");
                             println(ansi_italic("(base was already a fixed point)"));
                         }
                         default: {
-                            print(ansi_bold("  fixed point?"));
                             print("  yes     ");
                             println(ansi_italic("(converges after <fixedPointAfter> branch applications)"));
                         }
