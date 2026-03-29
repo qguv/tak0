@@ -23,7 +23,7 @@ map[AST, list[str]] checkCommute(Merge merge, int verbosity = 0) {
         num_permutations += 1;
 
         if (1 < verbosity) {
-            println("\n-- permutation <intercalate("", [letters[branch_i] | branch_i <- branch_order])> --");
+            println("\n-- permutation <intercalate("", [capital_letters[branch_i] | branch_i <- branch_order])> --");
         }
 
         // apply each branch in the permuted order
@@ -32,7 +32,7 @@ map[AST, list[str]] checkCommute(Merge merge, int verbosity = 0) {
         int last_branch_i = last(branch_order);
         for (branch_i <- branch_order) {
             Branch branch = merge.branches[branch_i];
-            permutation_name += [letters[branch_i]];
+            permutation_name += [capital_letters[branch_i]];
 
             if (2 < verbosity) {
                 println("\n  :: branch <intercalate(", then branch ", permutation_name)> ::");

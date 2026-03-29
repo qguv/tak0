@@ -3,7 +3,7 @@ module display
 import String; // split
 import List; // size
 
-public str letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+public str capital_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 str ansi_bold(str s) = "\u001b[1m<s>\u001b[22m";
 

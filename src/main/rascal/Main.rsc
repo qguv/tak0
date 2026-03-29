@@ -3,6 +3,7 @@ module Main
 import codebase;
 import commute;
 import display;
+import fixedpoint;
 import testcases;
 import vctypes;
 
@@ -20,11 +21,12 @@ void demo(int verbosity=0) {
     int test_i = 0;
     list[Testcase] allTests = getTestcases();
     for (<case_name, base_codebase, prop> <- allTests) {
-        if (0 < verbosity) {
+        println("\n\n== test <test_i+1> of <size(allTests)>: <case_name> ==");
+        test_i += 1;
+
+        if (verbosity == 0) {
             println("");
         }
-        println("\n== test <test_i+1> of <size(allTests)>: <case_name> ==");
-        test_i += 1;
 
         try {
             AST base = parseCodebase(base_codebase, verbosity=verbosity);
@@ -62,9 +64,9 @@ void demo(int verbosity=0) {
                         )
                         : "never"
                     );
-                    print(ansi_bold("  trivial?"));
+                    print(ansi_bold("- trivial?"));
                     println("      <trivial>");
-                    print(ansi_bold("  commutes?"));
+                    print(ansi_bold("- commutes?"));
                     println("     <
                         trivial == "always" ? "yes     <ansi_italic("(trivially)")>"
                         : size(results) == 1 ? "yes"
@@ -77,19 +79,17 @@ void demo(int verbosity=0) {
                     if (0 < verbosity) {
                         println("\n-- result --");
                     }
+                    print(ansi_bold("- fixed point?"));
                     switch (fixedPointAfter) {
                         case -1: {
-                            print(ansi_bold("  fixed point?"));
                             print("  no      ");
                             println(ansi_italic("(maximum attempts exceeded)"));
                         }
                         case 0: {
-                            print(ansi_bold("  fixed point?"));
                             print("  yes     ");
                             println(ansi_italic("(base was already a fixed point)"));
                         }
                         default: {
-                            print(ansi_bold("  fixed point?"));
                             print("  yes     ");
                             println(ansi_italic("(converges after <fixedPointAfter> branch applications)"));
                         }
@@ -101,61 +101,6 @@ void demo(int verbosity=0) {
             println("javascript parse error in <l>\n  line <l.begin.line>, column <l.begin.column>");
         }
     }
-}
-
-/*
-    checks whether the branch ends up in a fixed point
-
-    -1: no fixed point found (max number of attempts exhausted)
-    0: it was already in a fixed point (the next application is identical to the base)
-    1: it reaches a fixed point after being applied once
-    2: twice
-    ...: etc.
-*/
-int checkFixedPoint(AST base, Branch branch, int verbosity=0) {
-    maxAttempts = 3;
-
-    AST result = base;
-    for (i <- [0..maxAttempts]) {
-        AST last_result = result;
-
-        if (1 < verbosity) {
-            println("\n-- application <i+1> --");
-        }
-
-        for (patch_i <- [0..size(branch)]) {
-            Patch patch = branch[patch_i];
-            result = patch(result);
-
-            if (2 < verbosity) {
-                println("\n  :: patch <patch_i+1> of <size(branch)> ::\n<indent("  ", unparse(result))>");
-            }
-        }
-
-        if (verbosity == 2) {
-            println(result);
-        }
-
-        if (result == last_result) {
-            if (verbosity == 1) {
-                if (i == 0) {
-                    println("\n-- base and all subsequent applications --\n<base>");
-                } else {
-                    println("\n-- application <i> and onward --\n<result>");
-                }
-            }
-            return i;
-        }
-
-        if (verbosity == 1 && i == 0) {
-            println("\n-- base --\n<base>");
-        }
-    }
-
-    if (verbosity == 1) {
-        println("\n-- repetition <maxAttempts> (last attempt) --\n<result>");
-    }
-    return -1;
 }
 
 /*
