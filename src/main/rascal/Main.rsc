@@ -1,5 +1,6 @@
 module Main
 
+import checkFixedPoint;
 import codebase;
 import commute;
 import display;
@@ -103,61 +104,6 @@ void demo(int verbosity=0) {
             println("javascript parse error in <l>\n  line <l.begin.line>, column <l.begin.column>");
         }
     }
-}
-
-/*
-    checks whether the branch ends up in a fixed point
-
-    -1: no fixed point found (max number of attempts exhausted)
-    0: it was already in a fixed point (the next application is identical to the base)
-    1: it reaches a fixed point after being applied once
-    2: twice
-    ...: etc.
-*/
-int checkFixedPoint(AST base, Branch branch, int verbosity=0) {
-    maxAttempts = 3;
-
-    AST result = base;
-    for (i <- [0..maxAttempts]) {
-        AST last_result = result;
-
-        if (1 < verbosity) {
-            println("\n-- application <i+1> --");
-        }
-
-        for (patch_i <- [0..size(branch)]) {
-            Patch patch = branch[patch_i];
-            result = patch(result);
-
-            if (2 < verbosity) {
-                println("\n  :: patch <patch_i+1> of <size(branch)> ::\n<indent("  ", unparse(result))>");
-            }
-        }
-
-        if (verbosity == 2) {
-            println(result);
-        }
-
-        if (result == last_result) {
-            if (verbosity == 1) {
-                if (i == 0) {
-                    println("\n-- base and all subsequent applications --\n<base>");
-                } else {
-                    println("\n-- application <i> and onward --\n<result>");
-                }
-            }
-            return i;
-        }
-
-        if (verbosity == 1 && i == 0) {
-            println("\n-- base --\n<base>");
-        }
-    }
-
-    if (verbosity == 1) {
-        println("\n-- repetition <maxAttempts> (last attempt) --\n<result>");
-    }
-    return -1;
 }
 
 /*
