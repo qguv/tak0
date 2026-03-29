@@ -23,6 +23,7 @@ from a brand new user
     4. (note that if you try to import the syntax definition, vscode will complain that the import is unused and suggest that you delete it)
     5. without importing the syntax in file B, try to use the alias defined in file A and imported into B
     6. "undeclared non-terminal" error
+- what on earth could be wrong here? (branch `how-is-this-ambiguous`)
 - when I run my code (branch: call-failed) directly, it works, but in vscode, when I try to run main by clicking "Run in new Rascal terminal" above the main method, I get "CallFailed" errors with no output, warnings, suggestions, etc.:
 
     rascal>main()
