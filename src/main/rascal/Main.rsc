@@ -62,11 +62,13 @@ void demo(int verbosity=0) {
                         )
                         : "never"
                     );
-                    println("trivial?\n  <trivial>");
-                    println("commutes?\n  <
-                        trivial == "always" ? "yes (trivially)"
+                    print(ansi_bold("  trivial?"));
+                    println("      <trivial>");
+                    print(ansi_bold("  commutes?"));
+                    println("     <
+                        trivial == "always" ? "yes     <ansi_italic("(trivially)")>"
                         : size(results) == 1 ? "yes"
-                        : "no (<intercalate(" != ", sort([intercalate("/", sort(results[r])) | r <- results]))>)"
+                        : "no      (<ansi_italic(intercalate(" != ", sort([intercalate("/", sort(results[r])) | r <- results])))>)"
                     >");
                 }
 
@@ -76,12 +78,21 @@ void demo(int verbosity=0) {
                         println("\n-- result --");
                     }
                     switch (fixedPointAfter) {
-                        case -1:
-                            println("fixed point? no (maximum attempts exceeded)");
-                        case 0:
-                            println("fixed point? yes (base was already a fixed point)");
-                        default:
-                            println("fixed point? yes (converges after <fixedPointAfter> branch applications)");
+                        case -1: {
+                            print(ansi_bold("  fixed point?"));
+                            print("  no      ");
+                            println(ansi_italic("(maximum attempts exceeded)"));
+                        }
+                        case 0: {
+                            print(ansi_bold("  fixed point?"));
+                            print("  yes     ");
+                            println(ansi_italic("(base was already a fixed point)"));
+                        }
+                        default: {
+                            print(ansi_bold("  fixed point?"));
+                            print("  yes     ");
+                            println(ansi_italic("(converges after <fixedPointAfter> branch applications)"));
+                        }
                     }
                 }
             }
